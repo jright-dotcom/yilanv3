@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>Yılan Oyunu</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #000;
+      color: white;
+      font-family: sans-serif;
+    }
+    canvas {
+      background: #111;
+      touch-action: none;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: 80px 80px 80px;
+      grid-template-rows: 80px 80px;
+      gap: 10px;
+      margin: 10px;
+    }
+    .btn {
+      background: #333;
+      color: white;
+      font-size: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 10px;
+      user-select: none;
+    }
+    .btn:active { background: #666; }
+    .empty { visibility: hidden; }
+  </style>
+</head>
+<body>
+  <h3>Puan: <span id="score">0</span></h3>
+  <canvas id="game" width="400" height="400"></canvas>
+
+  <div class="controls">
+    <div class="empty"></div>
+    <div id="up" class="btn">▲</div>
+    <div class="empty"></div>
+
+    <div id="left" class="btn">◀</div>
+    <div id="down" class="btn">▼</div>
+    <div id="right" class="btn">▶</div>
+  </div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const scoreEl = document.getElementById("score");
+
+const grid = 20;
+let snake = [{x:9,y:9}];
+let dir = {x:0,y:0};
+let nextDir = {x:0,y:0};
+let food = {x:5,y:5};
+let score = 0;
+let eatCount = 0;
+let snakeColor = "yellow";
+
+function drawCell(x,y,color){
+  ctx.fillStyle = color;
+  ctx.fillRect(x*grid,y*grid,grid-2,grid-2);
+}
+
+function placeFood(){
+  food = {
+    x: Math.floor(Math.random()* (canvas.width/grid)),
+    y: Math.floor(Math.random()* (canvas.height/grid))
+  };
+}
+
+function gameLoop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // yönü uygula
+  if(!(nextDir.x === -dir.x && nextDir.y === -dir.y)){
+    dir = {...nextDir};
+  }
+
+  let head = {x:snake[0].x+dir.x, y:snake[0].y+dir.y};
+
+  // çarpma kontrolü
+  if(head.x<0||head.y<0||head.x>=canvas.width/grid||head.y>=canvas.height/grid||
+     snake.some(s=>s.x===head.x && s.y===head.y)){
+    alert("Oyun bitti! Puan: "+score);
+    snake=[{x:9,y:9}]; dir={x:0,y:0}; nextDir={x:0,y:0};
+    score=0; scoreEl.textContent=score; eatCount=0; snakeColor="yellow";
+    placeFood();
+    return;
+  }
+
+  snake.unshift(head);
+
+  if(head.x===food.x && head.y===food.y){
+    score+=10; scoreEl.textContent=score; eatCount++;
+    snakeColor = (eatCount%2===1) ? "yellow" : "red";
+    placeFood();
+  } else {
+    snake.pop();
+  }
+
+  // yemi çiz
+  drawCell(food.x,food.y,"lime");
+
+  // yılanı çiz
+  snake.forEach((s,i)=> drawCell(s.x,s.y,snakeColor));
+}
+
+setInterval(gameLoop,150);
+
+// yön tuşları
+function setDir(x,y){ nextDir={x,y}; }
+document.getElementById("up").onclick=()=>setDir(0,-1);
+document.getElementById("down").onclick=()=>setDir(0,1);
+document.getElementById("left").onclick=()=>setDir(-1,0);
+document.getElementById("right").onclick=()=>setDir(1,0);
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowUp") setDir(0,-1);
+  if(e.key==="ArrowDown") setDir(0,1);
+  if(e.key==="ArrowLeft") setDir(-1,0);
+  if(e.key==="ArrowRight") setDir(1,0);
+});
+</script>
+</body>
+</html>
