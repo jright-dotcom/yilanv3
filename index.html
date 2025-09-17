@@ -16,6 +16,7 @@
     }
     canvas {
       background: #111;
+      border: 1px solid white; /* ince beyaz çerçeve */
       touch-action: none;
     }
     .controls {
@@ -67,9 +68,13 @@ let score = 0;
 let eatCount = 0;
 let snakeColor = "yellow";
 
-function drawCell(x,y,color){
+function drawCell(x,y,color,isFood=false){
   ctx.fillStyle = color;
-  ctx.fillRect(x*grid,y*grid,grid-2,grid-2);
+  if(isFood){
+    ctx.fillRect(x*grid+4,y*grid+4,grid-8,grid-8); // yemi küçük kare
+  } else {
+    ctx.fillRect(x*grid+6,y*grid+6,grid-12,grid-12); // yılan daha ince (düz çizgi gibi)
+  }
 }
 
 function placeFood(){
@@ -82,14 +87,12 @@ function placeFood(){
 function gameLoop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // yönü uygula
   if(!(nextDir.x === -dir.x && nextDir.y === -dir.y)){
     dir = {...nextDir};
   }
 
   let head = {x:snake[0].x+dir.x, y:snake[0].y+dir.y};
 
-  // çarpma kontrolü
   if(head.x<0||head.y<0||head.x>=canvas.width/grid||head.y>=canvas.height/grid||
      snake.some(s=>s.x===head.x && s.y===head.y)){
     alert("Oyun bitti! Puan: "+score);
@@ -109,16 +112,15 @@ function gameLoop(){
     snake.pop();
   }
 
-  // yemi çiz
-  drawCell(food.x,food.y,"lime");
+  // yem
+  drawCell(food.x,food.y,"lime",true);
 
-  // yılanı çiz
-  snake.forEach((s,i)=> drawCell(s.x,s.y,snakeColor));
+  // yılan
+  snake.forEach(s=> drawCell(s.x,s.y,snakeColor));
 }
 
 setInterval(gameLoop,150);
 
-// yön tuşları
 function setDir(x,y){ nextDir={x,y}; }
 document.getElementById("up").onclick=()=>setDir(0,-1);
 document.getElementById("down").onclick=()=>setDir(0,1);
